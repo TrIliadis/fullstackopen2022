@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 if (process.argv.length < 3) {
   console.log(
-    "Please provide the password as an argument: node mongo.js <password>"
+    'Please provide the password as an argument: node mongo.js <password>',
   );
   process.exit(1);
 }
@@ -16,22 +16,21 @@ const personSchema = new mongoose.Schema({
   number: Number,
 });
 
-const Person = mongoose.model("Person", personSchema);
+const Person = mongoose.model('Person', personSchema);
 
 if (process.argv.length === 3) {
-  console.log("phonebook:");
+  console.log('phonebook:');
   mongoose
     .connect(url)
-    .then((res) => {
+    .then(() => {
       Person.find({})
         .then((res) => {
+          // eslint-disable-next-line array-callback-return
           res.map((person) => {
             console.log(`${person.name} ${person.number}`);
           });
         })
-        .then(() => {
-          return mongoose.connection.close();
-        });
+        .then(() => mongoose.connection.close());
     })
     .catch((err) => console.log(err));
 }
@@ -39,8 +38,8 @@ if (process.argv.length === 3) {
 if (process.argv.length > 3) {
   mongoose
     .connect(url)
-    .then((res) => {
-      console.log("connected");
+    .then(() => {
+      console.log('connected');
 
       const person = new Person({
         name: process.argv[3],
@@ -50,7 +49,7 @@ if (process.argv.length > 3) {
       return person.save();
     })
     .then(() => {
-      console.log("person saved!");
+      console.log('person saved!');
       return mongoose.connection.close();
     })
     .catch((err) => console.log(err));
