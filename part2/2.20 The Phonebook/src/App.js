@@ -28,34 +28,54 @@ const App = () => {
       ) {
         const editedPerson = persons.find((person) => person.name === newName);
         editedPerson.number = newNumber;
-        personService.editPerson(editedPerson).then((res) => {
-          setPersons(
-            persons.map((person) => {
-              return person.id === res.data.id ? editedPerson : person;
-            })
-          );
-          setNotificationType("success");
-          setMessage(`Edited ${editedPerson.name}'s number`);
-          setNotificationType(null);
-          setTimeout(() => {
-            setMessage(null);
-          }, 5000);
-        });
+        personService
+          .editPerson(editedPerson)
+          .then((res) => {
+            setPersons(
+              persons.map((person) => {
+                return person.id === res.data.id ? editedPerson : person;
+              })
+            );
+            setNotificationType("success");
+            setMessage(`Edited ${editedPerson.name}'s number`);
+            setTimeout(() => {
+              setNotificationType(null);
+              setMessage(null);
+            }, 5000);
+          })
+          .catch((err) => {
+            setNotificationType("error");
+            setMessage(err.response.data.error);
+            setTimeout(() => {
+              setNotificationType(null);
+              setMessage(null);
+            }, 5000);
+          });
         return;
       } else return;
     }
     const newPerson = { name: newName, number: newNumber };
     personService
       .addPerson(newPerson)
-      .then((res) => setPersons(persons.concat(res)));
-    setNotificationType("success");
-    setMessage(`Added ${newPerson.name} to the list`);
-    setTimeout(() => {
-      setNotificationType(null);
-      setMessage(null);
-    }, 5000);
-    setNewName("");
-    setNewNumber("");
+      .then((res) => {
+        setPersons(persons.concat(res));
+        setNotificationType("success");
+        setMessage(`Added ${newPerson.name} to the list`);
+        setTimeout(() => {
+          setNotificationType(null);
+          setMessage(null);
+        }, 5000);
+        setNewName("");
+        setNewNumber("");
+      })
+      .catch((err) => {
+        setNotificationType("error");
+        setMessage(err.response.data.error);
+        setTimeout(() => {
+          setNotificationType(null);
+          setMessage(null);
+        }, 5000);
+      });
   };
 
   const handleChange = (e) => {

@@ -17,28 +17,31 @@ app.get("/api/persons", (req, res) => {
   Person.find().then((response) => res.json(response));
 });
 
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const { name, number } = req.body;
-  if (name && number) {
-    const newPerson = new Person({
-      name,
-      number,
-    });
-    newPerson.save().then((response) => res.json(response));
-  } else {
-    return res.status(400).json({ error: "missing name or number values" });
-  }
+  const person = Person.find({ name }).then((result) => console.log(result));
+  if (person) res.status(409).json({ error: "Name already exists" });
+  const newPerson = new Person({
+    name,
+    number,
+  });
+  newPerson
+    .save()
+    .then((response) => res.json(response))
+    .catch((err) => next(err));
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
   const { id } = req.params;
-  const { name, number } = req.body;
-  Person.findByIdAndUpdate(id, { number: number })
+  const { number, name } = req.body;
+  Person.findByIdAndUpdate(id, { number, name }, { runValidators: true })
     .then((result) => {
       if (result) res.status(204).json(result);
       else res.status(404).json({ error: "Person not found" });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      next(err);
+    });
 });
 
 app.get("/info", (req, res) => {
@@ -82,9 +85,12 @@ const errorHandler = (error, req, res, next) => {
   console.log(error.message);
 
   if (error.name === "CastError") {
-    return res.status(400).send({ error: "malformatted id" });
+    return res.status(400).json({ error: "malformatted id" });
   }
-
+  if (error.name === "ValidationError") {
+    console.log("in");
+    return res.status(400).json({ error: error.message });
+  }
   next(error);
 };
 
