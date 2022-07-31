@@ -26,8 +26,8 @@ const App = () => {
           `${newName} already exists in the Phonebook, replace the old number with a new one?`
         )
       ) {
-        const editedPerson = persons.find((person) => person.name === newName);
-        editedPerson.number = newNumber;
+        const person = persons.find((person) => person.name === newName);
+        const editedPerson = { ...person, number: newNumber };
         personService
           .editPerson(editedPerson)
           .then((res) => {

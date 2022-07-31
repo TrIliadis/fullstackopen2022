@@ -1,26 +1,34 @@
-require("dotenv").config();
-const express = require("express");
+/* eslint-disable consistent-return */
+require('dotenv').config();
+
+const express = require('express');
+
 const app = express();
-const morgan = require("morgan");
-const cors = require("cors");
-const Person = require("./models/person");
+const morgan = require('morgan');
+const cors = require('cors');
+const Person = require('./models/person');
 
 app.use(express.json());
-app.use(express.static("build"));
+app.use(express.static('build'));
 app.use(cors());
-morgan.token("type", (req, res) => JSON.stringify(req.body));
+// eslint-disable-next-line no-unused-vars
+morgan.token('type', (req, res) => JSON.stringify(req.body));
 app.use(
-  morgan(":method :url :status :res[content-length] - :response-time ms :type")
+  morgan(':method :url :status :res[content-length] - :response-time ms :type'),
 );
 
-app.get("/api/persons", (req, res) => {
+app.get('/api/persons', (req, res) => {
   Person.find().then((response) => res.json(response));
 });
 
-app.post("/api/persons", (req, res, next) => {
+app.post('/api/persons', (req, res, next) => {
   const { name, number } = req.body;
-  const person = Person.find({ name }).then((result) => console.log(result));
-  if (person) res.status(409).json({ error: "Name already exists" });
+  const person = Person.find({ name }).then((result) => {
+    console.log('result = ', result);
+  });
+  if (person.length > 0) {
+    return res.status(409).json({ error: 'Name already exists' });
+  }
   const newPerson = new Person({
     name,
     number,
@@ -31,43 +39,43 @@ app.post("/api/persons", (req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.put("/api/persons/:id", (req, res, next) => {
+app.put('/api/persons/:id', (req, res, next) => {
   const { id } = req.params;
   const { number, name } = req.body;
   Person.findByIdAndUpdate(id, { number, name }, { runValidators: true })
     .then((result) => {
       if (result) res.status(204).json(result);
-      else res.status(404).json({ error: "Person not found" });
+      else res.status(404).json({ error: 'Person not found' });
     })
     .catch((err) => {
       next(err);
     });
 });
 
-app.get("/info", (req, res) => {
+app.get('/info', (req, res) => {
   Person.find({}).then((result) => {
     res.send(
-      `<p>Phonebook has info for ${result.length} people</p><p>${Date()}</p>`
+      `<p>Phonebook has info for ${result.length} people</p><p>${Date()}</p>`,
     );
   });
 });
 
-app.get("/api/persons/:id", (req, res, next) => {
+app.get('/api/persons/:id', (req, res, next) => {
   const { id } = req.params;
   Person.findById(id)
     .then((person) => {
       if (person) res.json(person);
-      else res.status(404).json({ error: "Person not found" });
+      else res.status(404).json({ error: 'Person not found' });
     })
     .catch((err) => next(err));
 });
 
-app.delete("/api/persons/:id", (req, res, next) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   const { id } = req.params;
   Person.findByIdAndDelete(id)
     .then((result) => {
       if (result) res.status(204).end();
-      else res.status(404).json({ error: "Person not found" });
+      else res.status(404).json({ error: 'Person not found' });
     })
     .catch((err) => {
       next(err);
@@ -76,19 +84,20 @@ app.delete("/api/persons/:id", (req, res, next) => {
 });
 
 const unknownEndpoint = (req, res) => {
-  res.status(404).send({ error: "unknown endpoint" });
+  res.status(404).send({ error: 'unknown endpoint' });
 };
 
 app.use(unknownEndpoint);
 
+// eslint-disable-next-line consistent-return
 const errorHandler = (error, req, res, next) => {
   console.log(error.message);
 
-  if (error.name === "CastError") {
-    return res.status(400).json({ error: "malformatted id" });
+  if (error.name === 'CastError') {
+    return res.status(400).json({ error: 'malformatted id' });
   }
-  if (error.name === "ValidationError") {
-    console.log("in");
+  if (error.name === 'ValidationError') {
+    console.log('in');
     return res.status(400).json({ error: error.message });
   }
   next(error);
