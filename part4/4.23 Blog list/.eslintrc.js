@@ -13,8 +13,11 @@ module.exports = {
   rules: {
     'no-console': 'off',
     'linebreak-style': 0,
-    'no-underscore-dangle': ['off'],
+    'no-underscore-dangle': 'off',
     'no-plusplus': 'off',
     'no-restricted-syntax': 'off',
+    'consistent-return': 'off',
+    'object-curly-newline': 'off',
   },
 };
+

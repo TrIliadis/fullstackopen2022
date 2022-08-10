@@ -6,8 +6,18 @@ const { initialBlogs, blogsInDb, nonValidId } = require('./test_helper');
 
 const api = supertest(app);
 
+let token = '';
+
 beforeEach(async () => {
   await Blog.deleteMany({});
+
+  const loginInfo = {
+    username: 'root',
+    password: 'secret',
+  };
+
+  const res = await supertest(app).post('/api/login').send(loginInfo);
+  token = res.body.token;
 
   const blogObjects = initialBlogs.map((blog) => new Blog(blog));
   const promiseArray = blogObjects.map((blog) => blog.save());
@@ -47,6 +57,7 @@ describe('addition of a new blog', () => {
       .post('/api/blogs')
       .send(newBlog)
       .expect(201)
+      .set('Authorization', `Bearer ${token}`)
       .expect('Content-Type', /application\/json/);
 
     const blogsAtEnd = await blogsInDb();
@@ -74,6 +85,7 @@ describe('addition of a new blog', () => {
       .post('/api/blogs')
       .send(newBlog)
       .expect(201)
+      .set('Authorization', `Bearer ${token}`)
       .expect('Content-Type', /application\/json/);
 
     const blogsAtEnd = await blogsInDb();
@@ -86,10 +98,34 @@ describe('addition of a new blog', () => {
       author: 'Triliadis',
     };
 
-    await api.post('/api/blogs').send(newBlog).expect(400);
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400)
+      .expect('Content-Type', /application\/json/);
 
     const blogsAtEnd = await blogsInDb();
     expect(blogsAtEnd).toHaveLength(initialBlogs.length);
+  });
+
+  test('if token is missing when adding a blog, it will fail', async () => {
+    const blogsAtStart = await blogsInDb();
+
+    const newBlog = {
+      title: 'HTTP POST req test',
+      author: 'Triliadis',
+      url: 'localhost',
+    };
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
+      .expect('Content-Type', /application\/json/);
+
+    const blogsAtEnd = await blogsInDb();
+    expect(blogsAtEnd).toHaveLength(blogsAtStart.length);
   });
 });
 
@@ -99,7 +135,10 @@ describe('tests for blog deletion', () => {
 
     const blogToDelete = blogsAtStart[0];
 
-    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(204);
 
     const blogsAtEnd = await blogsInDb();
 
@@ -112,7 +151,10 @@ describe('tests for blog deletion', () => {
 
   test('deletion with non valid id', async () => {
     const id = nonValidId();
-    await api.delete(`/api/blogs/${id}`).expect(404);
+    await api
+      .delete(`/api/blogs/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404);
   });
 });
 
