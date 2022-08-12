@@ -13,7 +13,7 @@ blogsRouter.get('/', async (req, res) => {
 blogsRouter.post('/', async (req, res) => {
   const { title, url, likes, author } = req.body;
 
-  // tokenExtractor middleware failed to find the token
+  // userExtractor middleware failed to find the user/token
   if (!req.user.id) {
     return res.status(401).json({ error: 'token missing or invalid' });
   }
